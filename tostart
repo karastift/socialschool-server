@@ -1,0 +1,4 @@
+start redis-server
+start postgresql
+yarn watch
+yarn dev
