@@ -1,58 +1,84 @@
 import "reflect-metadata";
-import { MikroORM } from "@mikro-orm/core";
-import { __prod__ } from "./constants";
-import microConfig from "./mikro-orm.config";
+import { __prod__, COOKIE_NAME } from "./constants";
+import "dotenv-safe/config";
 import express from "express";
-import session from "express-session";
-import redis from "redis";
-import connectRedis from "connect-redis";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
-import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
-import { MyContext } from "./types";
+import Redis from "ioredis";
+import session from "express-session";
+import connectRedis from "connect-redis";
 import cors from "cors";
+import { createConnection } from "typeorm";
+import { Post } from "./entities/Post";
+import { User } from "./entities/User";
+import { MyContext } from "./types";
+import path from "path";
+import { Upvote } from "./entities/Upvote";
+import { createUserLoader } from "./utils/createUserLoader";
+import { createUpvoteLoader } from "./utils/createUpvoteLoader";
+import { School } from "./entities/School";
+import { createSchoolLoader } from "./utils/createSchoolLoader";
+import { PostComment } from "./entities/PostComment";
+import { PostCommentResolver } from "./resolvers/postComment";
+import { Grade } from "./entities/Grade";
+import { GradeResolver } from "./resolvers/grade";
+
 
 const main = async () => {
-    const orm = await MikroORM.init(microConfig);
-    await orm.getMigrator().up();
-   
+    const conn = await createConnection({
+        type: 'postgres',
+        url: process.env.DATABASE_URL,
+        logging: true,
+        synchronize: true,
+        migrations: [path.join(__dirname, "./migrations/*")],
+        entities: [User, Post, Upvote, School, PostComment, Grade]
+    });
+    await conn.runMigrations();
+
     const app = express();
 
-    const RedisStore = connectRedis(session)
-    const redisClient = redis.createClient()
-
+    const RedisStore = connectRedis(session);
+    const redis = new Redis(process.env.REDIS_URL);
+    app.set('proxy', 1);
     app.use(cors({
-        origin: 'http://localhost:19006',
+        origin: process.env.CORS_ORIGIN,
         credentials: true,
     }));
 
     app.use(
         session({
-            name: 'sessid',
+            name: COOKIE_NAME,
             store: new RedisStore({
-                client: redisClient,
+                client: redis,
                 disableTouch: true,
             }),
             cookie: {
                 maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
                 httpOnly: true,
                 sameSite: 'lax',
-                secure: !__prod__, // only https
+                secure: __prod__, // cookie only works https
             },
             saveUninitialized: false,
-            secret: 'change this secret after production',
+            secret: process.env.SESSION_SECRET,
             resave: false,
         })
     )
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [HelloResolver, PostResolver, UserResolver],
+            resolvers: [PostResolver, UserResolver, PostCommentResolver, GradeResolver],
             validate: false,
         }),
-        context: ({ req, res }): MyContext => ({ em: orm.em, req, res })
+        context: ({ req, res }): MyContext => ({
+            req,
+            res,
+            redis,
+            userLoader: createUserLoader(),
+            upvoteLoader: createUpvoteLoader(),
+            schoolLoader: createSchoolLoader(),
+        })
     });
 
     apolloServer.applyMiddleware({
@@ -60,8 +86,8 @@ const main = async () => {
         cors: false,
     });
 
-    app.listen(4000, () => {
-        console.log('Server startet on port 4000...');
+    app.listen(parseInt(process.env.PORT), () => {
+        console.log('\x1b[37m\nServer\x1b[32m started\x1b[37m on port: ' + '\x1b[33m' + `${process.env.PORT}`, '\x1b[0m\n');
     });
 
 };

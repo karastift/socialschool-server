@@ -1,9 +1,15 @@
-import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core";
 import { Request, Response } from "express";
 import { Session, SessionData } from 'express-session';
+import { Redis } from "ioredis";
+import { createUserLoader } from "./utils/createUserLoader";
+import { createUpvoteLoader } from "./utils/createUpvoteLoader";
+import { createSchoolLoader } from "./utils/createSchoolLoader";
 
 export type MyContext = {
-    em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>;
-    req: Request & { session: Session & Partial<SessionData> & { userId?: number } };
+    req: Request & { session: Session & Partial<SessionData> & { userId?: number, userSchool?: string } };
     res: Response;
+    redis: Redis;
+    userLoader: ReturnType<typeof createUserLoader>;
+    upvoteLoader: ReturnType<typeof createUpvoteLoader>;
+    schoolLoader: ReturnType<typeof createSchoolLoader>;
 };

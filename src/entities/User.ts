@@ -1,26 +1,60 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
-import { Field, ObjectType } from "type-graphql";
+import "reflect-metadata";
+import { ObjectType, Field } from "type-graphql";
+import {
+    Entity,
+    Column,
+    PrimaryGeneratedColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
+    BaseEntity,
+    OneToMany,
+    ManyToOne
+} from "typeorm";
+import { Grade } from "./Grade";
+import { Post } from "./Post";
+import { School } from "./School";
+import { Upvote } from "./Upvote";
 
 @ObjectType()
 @Entity()
-export class User {
+export class User extends BaseEntity {
 
     @Field()
-    @PrimaryKey()
+    @PrimaryGeneratedColumn()
     id!: number;
 
-    @Field(() => String)
-    @Property({type: 'date'})
-    createdAt: Date = new Date();
-
-    @Field(() => String)
-    @Property({ type: 'date', onUpdate: () => new Date() })
-    updatedAt: Date = new Date();
-
     @Field()
-    @Property({ type: 'text', unique: true })
+    @Column({ unique: true })
     username!: string;
 
-    @Property({ type: 'text' })
+    @Field()
+    @Column({ unique: true })
+    email!: string;
+
+    @Column()
     password!: string;
+
+    @Field()
+    @Column()
+    schoolId!: number;
+
+    @ManyToOne(() => School, school => school.students)
+    school: School;
+
+    @OneToMany(() => Grade, grade => grade.creator)
+    grades: Grade[];
+
+    @OneToMany(() => Post, post => post.creator)
+    posts: Post[];
+
+    @OneToMany(() => Upvote, (upvote) => upvote.user)
+    upvotes: Upvote[];
+
+    @Field(() => String)
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @Field(() => String)
+    @UpdateDateColumn()
+    updatedAt: Date;
 }
