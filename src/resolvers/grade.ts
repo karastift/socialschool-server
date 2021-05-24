@@ -65,6 +65,34 @@ export class GradeResolver {
         return grades;
     }
 
+    @Query(() => [String], { nullable: true })
+    @UseMiddleware(isAuth)
+    async allSubjects(
+        @Ctx() { req }: MyContext
+    ): Promise<string[] | undefined> {
+
+        const userId = req.session.userId;
+
+        const grades = await Grade.find(
+            {
+                where: {
+                    creatorId: userId,
+                },
+                order: {
+                    createdAt: "ASC",
+                }
+            }
+        );
+        let subjects: string[] = []
+        grades.map((grade) => {
+            if (!subjects.includes(grade.subject)) {
+                subjects.push(grade.subject)
+            }
+        });
+
+        return subjects;
+    }
+
     @Query(() => Grade, { nullable: true })
     @UseMiddleware(isAuth)
     async grade(
