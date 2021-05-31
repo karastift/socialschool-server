@@ -1,16 +1,16 @@
-import { User } from "../entities/User";
-import { Arg, Ctx, FieldResolver, Mutation, Query, Resolver, Root } from "type-graphql";
-import { MyContext } from "../types";
 import argon2 from "argon2";
-import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
-import { validateRegister } from "../utils/validateRegister";
-import { sendEmail } from "../utils/sendEmail";
+import { Arg, Ctx, FieldResolver, Mutation, Query, Resolver, Root } from "type-graphql";
 import { v4 } from "uuid";
-import { sleep } from "../utils/sleep"
+import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
+import { School } from "../entities/School";
+import { User } from "../entities/User";
 import { UsernamePasswordInput } from "../ObjectTypes/UsernamePasswordInput";
 import { UserResponse } from "../ObjectTypes/UserResponse";
+import { MyContext } from "../types";
+import { sendEmail } from "../utils/sendEmail";
+import { sleep } from "../utils/sleep";
+import { validateRegister } from "../utils/validateRegister";
 import { validateSchool } from "../utils/validateSchool";
-import { School } from "../entities/School";
 import { validateSchoolLogin } from "../utils/validateSchoolLogin";
 
 @Resolver(User)
@@ -172,12 +172,22 @@ export class UserResolver {
             user = result;
         }
         catch (e) {
-            if (e.code === "23505") {
+            if (e.code === '23505') {
                 return {
                     errors: [
                         {
                             field: 'username',
-                            message: 'Username is already taken.'
+                            message: 'Username is already taken.',
+                        },
+                    ],
+                };
+            }
+            else {
+                return {
+                    errors: [
+                        {
+                            field: 'undefined',
+                            message: 'Some error.',
                         },
                     ],
                 };
@@ -232,7 +242,6 @@ export class UserResolver {
 
         req.session!.userId = user.id;
         req.session!.userSchool = school?.schoolName;
-
         return { user };
     }
     @Mutation(() => Boolean)

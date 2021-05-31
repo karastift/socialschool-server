@@ -31,17 +31,19 @@ const main = async () => {
         type: 'postgres',
         url: process.env.DATABASE_URL,
         logging: true,
-        synchronize: true,
+        // synchronize: true,
         migrations: [path.join(__dirname, "./migrations/*")],
         entities: [User, Post, Upvote, School, PostComment, Grade]
     });
-    await conn.runMigrations();
+    // await conn.runMigrations();
 
     const app = express();
 
     const RedisStore = connectRedis(session);
     const redis = new Redis(process.env.REDIS_URL);
-    app.set('proxy', 1);
+
+    app.set('trust proxy', 1);
+
     app.use(cors({
         origin: process.env.CORS_ORIGIN,
         credentials: true,
@@ -58,7 +60,8 @@ const main = async () => {
                 maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
                 httpOnly: true,
                 sameSite: 'lax',
-                secure: __prod__, // cookie only works https
+                secure: false, // cookie only works https
+                // domain: __prod__ ? '.socialschool-server.com' : undefined,
             },
             saveUninitialized: false,
             secret: process.env.SESSION_SECRET,
@@ -85,6 +88,8 @@ const main = async () => {
         app,
         cors: false,
     });
+    
+    // app.get('/', (_, res) => res.send('wrong site'));
 
     app.listen(parseInt(process.env.PORT), () => {
         console.log('\x1b[37m\nServer\x1b[32m started\x1b[37m on port: ' + '\x1b[33m' + `${process.env.PORT}`, '\x1b[0m\n');

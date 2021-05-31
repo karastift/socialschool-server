@@ -1,4 +1,3 @@
 node_modules
 dist
-# uncomment in production
-# .env
+.env
