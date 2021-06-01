@@ -1,3 +1,4 @@
+export const fourNullFourPage = `
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -45,8 +46,9 @@
   <div class="wrapper">
     <div class="header">Social School</div>
     <div class="font">A social network for students.</div>
-    <div class="otherfont">download the app:</div>
-    <img src="qr_code.png" alt="qr code">
+    <div class="otherfont">You can download the app in the PlayStore/App Store.</div>
+    <div class="otherfont" style="margin-top:30px;">developed by Kian van der Meer</div>
   </div> 
 </body>
 </html>
+`;

@@ -24,6 +24,7 @@ import { PostComment } from "./entities/PostComment";
 import { PostCommentResolver } from "./resolvers/postComment";
 import { Grade } from "./entities/Grade";
 import { GradeResolver } from "./resolvers/grade";
+import { fourNullFourPage } from "./assets/404Page";
 
 
 const main = async () => {
@@ -89,7 +90,7 @@ const main = async () => {
         cors: false,
     });
     
-    // app.get('/', (_, res) => res.send('wrong site'));
+    app.get('/', (_, res) => res.send(fourNullFourPage));
 
     app.listen(parseInt(process.env.PORT), () => {
         console.log('\x1b[37m\nServer\x1b[32m started\x1b[37m on port: ' + '\x1b[33m' + `${process.env.PORT}`, '\x1b[0m\n');
