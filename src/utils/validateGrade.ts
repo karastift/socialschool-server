@@ -10,6 +10,15 @@ export const validateGrade = (options: GradeInput) => {
         ];
     }
 
+    if (options.value > 1 || options.value < 0.01) {
+        return [
+            {
+                field: "value",
+                message: "Value is invalid.",
+            },
+        ];
+    }
+
     if (options.subject.length < 2 || options.subject.length > 30) {
         return [
             {

@@ -10,4 +10,7 @@ export class GradeInput {
 
     @Field()
     thoughts: string;
+
+    @Field()
+    value: number;
 }

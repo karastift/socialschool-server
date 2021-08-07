@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { ObjectType, Field } from "type-graphql";
+import { ObjectType, Field, Float } from "type-graphql";
 import {
     Entity,
     Column,
@@ -26,6 +26,10 @@ export class Grade extends BaseEntity {
     @Field()
     @Column()
     subject!: string;
+
+    @Field(() => Float)
+    @Column({ type: 'float' })
+    value!: number;
 
     @Field()
     @Column()

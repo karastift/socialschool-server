@@ -36,6 +36,7 @@ const main = async () => {
         migrations: [path.join(__dirname, "./migrations/*")],
         entities: [User, Post, Upvote, School, PostComment, Grade]
     });
+    
     await conn.runMigrations();
 
     const app = express();
